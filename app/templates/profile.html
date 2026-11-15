@@ -1,0 +1,19 @@
+{% extends 'base.html' %}{% block title %}Verified profile{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">ABOUT YOU</div><h1>Your profile<span class="period">.</span></h1><p class="sub">Add experience you can confirm. The app uses your words when preparing a resume.</p></div></div>
+<div class="two-column"><div><form class="panel form-panel" method="post" action="/profile"><input type="hidden" name="csrf" value="{{csrf}}">
+<h2>1. Contact details</h2><div class="form-grid"><label>Full name<input name="full_name" maxlength="200" value="{{profile.full_name}}" placeholder="Your professional name"></label><label>Phone<input name="phone" maxlength="90" value="{{profile.phone}}"></label></div>
+<div class="form-grid"><label>Location<input name="location" value="{{profile.location}}" maxlength="150" placeholder="Chennai / Remote"></label><label>Professional headline<input name="headline" value="{{profile.headline}}" maxlength="300" placeholder="Backend & GenAI Engineer"></label></div>
+<label>Approved professional summary<textarea name="summary" rows="4" maxlength="1300" placeholder="Only factual statements; this text appears verbatim in the PDF">{{profile.summary}}</textarea></label>
+<div class="divider-line"></div><h2>2. Experience and skills</h2><p class="small-desc">Write one accurate statement per line. You can copy text from your uploaded resume. To group a statement, start with <code>skills |</code>, <code>experience |</code> or <code>education |</code>. Saving confirms that you have checked these details.</p>
+<label>Verified facts<textarea name="fact_lines" rows="15" placeholder="experience | Built production Python APIs for LLM services&#10;skills | Python, FastAPI, PostgreSQL, LangGraph&#10;research | Co-authored a peer-reviewed paper ...">{{ facts_lines }}</textarea></label>
+<div class="divider-line"></div><h2>3. Jobs you want</h2><label>Job titles or skills <span class="hint">Separate each with a comma, for example Python, Backend</span><input name="search_terms" value="{{profile.search_terms}}" maxlength="500"></label>
+<label>Preferred locations <span class="hint">Only jobs matching these locations are saved</span><input name="preferred_locations" value="{{profile.preferred_locations}}" maxlength="500"></label>
+<label>Exclude postings containing<textarea name="excluded_terms" rows="2" placeholder="Unpaid, Sales, Junior internship">{{profile.excluded_terms}}</textarea></label>
+<p class="small-desc">Choose the job sites you want to use on the <a href="/sources">Job sources</a> page.</p>
+<button class="btn primary">Save profile</button></form></div>
+<div><div class="panel side-panel"><h3>Import existing PDF</h3><p class="small-desc">Extracts text from a PDF for your reference. It does not auto-approve its claims.</p>
+<form action="/profile/upload" method="post" enctype="multipart/form-data"><input type="hidden" name="csrf" value="{{csrf}}"><label>Master resume PDF, max 2 MB<input type="file" name="file" accept="application/pdf,.pdf" required></label><button class="btn quiet small">Extract resume text</button></form>
+{% if profile.master_resume %}<details><summary>View extracted master resume</summary><pre class="extracted">{{profile.master_resume}}</pre></details>{% endif %}</div>
+<div class="panel side-panel"><h3>What to do here</h3><p class="small-desc">Start with your contact details. Upload a resume if you want to copy from it, then check and save your experience. Your unsaved text stays in this browser tab while you move between pages.</p><p class="small-desc">Once you save, open Connections to add your AI service and email. You can then choose job sites and review opportunities.</p></div></div></div>
+{% endblock %}

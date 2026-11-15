@@ -1,0 +1,44 @@
+{% extends 'base.html' %}{% block title %}{{job.title}}{% endblock %}
+{% block content %}
+<div class="page-head"><div><a href="/" class="back-link">← All jobs</a><div class="eyebrow">JOB FROM {{job.source|upper}}</div><h1 class="job-heading">{{job.title}}<span class="period">.</span></h1><p class="sub">{{job.company}} · {{job.location or 'Location not supplied'}}</p></div>
+<div class="actions">{% if job.pdf_blob %}<a href="/jobs/{{job.id}}/resume.pdf" class="btn quiet">↓ Resume PDF</a>{% endif %}<span class="status big {{job.status}}">{{job.status|replace('_',' ')}}</span></div></div>
+<div class="notice"><span class="notice-icon">◎</span><div><strong>You choose when to apply</strong><p>Review the job, your resume and the application link. Opening a link or emailing a package to yourself does not submit an application.</p></div></div>
+<div class="two-column"><div>
+<div class="panel form-panel"><div class="eyebrow">YOUR MATCH</div><h2>Resume and job requirements</h2>
+{% if job.incomplete %}<p class="amber">This alert did not include the full job description. Open the original posting, copy its responsibilities and requirements, then save them below. The app cannot safely prepare a tailored resume from the job title alone.</p>{% else %}<p class="green">Job description is ready for review.</p>{% endif %}
+<form action="/jobs/{{job.id}}/prepare" method="post" class="button-row"><input type="hidden" name="csrf" value="{{csrf}}"><button class="btn primary" {% if job.incomplete %}disabled{% endif %}>{{'Optimize my resume again' if job.pdf_blob else 'Optimize my resume'}}</button></form>
+{% if job.pdf_blob %}<div class="divider-line"></div><div class="section-title"><h3>Why this job may fit</h3><span class="tag">{{evidence}} / {{requirements|length}} requirements linked to your experience*</span></div>
+<p>{{job.explanation or 'Model did not provide an explanation.'}}</p>
+{% for req in requirements %}<div class="evidence-item"><div><span class="{{ 'green' if req.fact_ids else 'amber' }}">{{'✓' if req.fact_ids else '○'}}</span> {{req.requirement}}</div>
+{% if req.fact_ids %}<small>Evidence: {% for id in req.fact_ids %}<b>{{id}}</b> {{facts.get(id,'(fact updated since preparation)')}}{% if not loop.last %}; {% endif %}{% endfor %}</small>{% else %}<small class="amber">Not supported by identified verified facts</small>{% endif %}</div>{% endfor %}
+{% if missing %}<h3>Unresolved requirements</h3><ul class="gap-list">{% for m in missing %}<li>{{m}}</li>{% endfor %}</ul>{% endif %}
+<details><summary>Suggested cover note (review before using)</summary><p class="small-desc">{{job.cover_note or 'None generated'}}</p></details>
+<p class="fine">*AI-generated evidence mapping is an aid for review, not a validated hiring score. Only selected, previously verified fact text enters your resume.</p>
+{% endif %}</div>
+<div class="panel form-panel"><h2>Check job details</h2><p class="small-desc">Email alerts may leave out details. Compare this information with the original job posting. If you change the job description, prepare the resume again.</p>
+<form method="post" action="/jobs/{{job.id}}/edit"><input type="hidden" name="csrf" value="{{csrf}}"><div class="form-grid"><label>Role<input name="title" value="{{job.title}}" required></label><label>Employer<input name="company" value="{{job.company}}" required></label></div>
+<label>Location<input name="location" value="{{job.location}}"></label><label>Listing link<input type="url" name="listing_url" value="{{job.listing_url}}"></label>
+<label>Application link<input type="url" name="apply_url" value="{{job.apply_url}}"></label>
+<label>Employer application email (optional)<input type="email" name="employer_email" value="{{job.employer_email}}" placeholder="jobs@employer.com"></label>
+<label class="check-line"><input type="checkbox" name="email_invited" {% if job.employer_email_confirmed %}checked{% endif %}><span>I independently verified that this vacancy expressly accepts job applications by email at the address above.</span></label>
+<label>Full job description<textarea rows="16" name="description" required>{{job.description}}</textarea></label><button class="btn quiet">Save job details</button></form></div>
+</div><div><div class="panel side-panel"><div class="eyebrow">NEXT ACTION</div><h3>Ready to apply?</h3>
+{% if job.apply_url or job.listing_url %}<p class="small-desc">{{'Link provided by official employer feed.' if job.verified_link else 'Unverified link. Confirm the employer, domain, and vacancy before sharing personal information.'}}</p><a class="btn quiet wide" href="{{job.apply_url or job.listing_url}}" rel="noreferrer noopener" target="_blank">Open application page ↗</a>{% else %}<p class="small-desc amber">No application URL available yet. Add one in the vacancy editor.</p>{% endif %}
+<div class="divider-line"></div><p class="small-desc">Email a copy of the customized resume, gaps and link to <b>{{profile.gmail_address or 'your connected Gmail'}}</b>. This does not apply on your behalf.</p>
+<form method="post" action="/jobs/{{job.id}}/notify"><input type="hidden" name="csrf" value="{{csrf}}"><button class="btn primary wide" {% if not job.pdf_blob or job.notification_attempted_at or job.status in ['notification_pending','notification_uncertain','applied','interview','offer'] %}disabled{% endif %}>✉ Email my application package</button></form>
+{% if job.notified_at %}<p class="green small-desc">Sent {{job.notified_at.strftime('%Y-%m-%d %H:%M')}} UTC</p>{% elif job.status in ['notification_pending','notification_uncertain'] %}<p class="amber small-desc">Email outcome uncertain; check your Gmail Sent folder before taking any action.</p>{% endif %}
+</div>
+<div class="panel side-panel"><div class="eyebrow">SUPPORTED SUBMISSION</div><h3>Apply by verified employer email</h3>
+<p class="small-desc">Only for a vacancy explicitly inviting emailed applications. You must review the recipient and message and approve this exact submission. No bulk employer emails or website automation.</p>
+{% if job.employer_email_confirmed %}<div class="connection"><span class="green-dot"></span><b>{{job.employer_email}}</b></div>
+<form method="post" action="/jobs/{{job.id}}/employer-email"><input type="hidden" name="csrf" value="{{csrf}}">
+<label>Reviewed message to employer<textarea rows="6" name="application_message" minlength="40" maxlength="2400" required placeholder="Dear hiring team, I am applying for the position ... Please find my resume attached."></textarea></label>
+<label class="check-line"><input type="checkbox" name="confirm" value="yes" required><span>I reviewed the employer email, my tailored resume and this message, and explicitly authorize sending.</span></label>
+<button class="btn primary wide" {% if not job.pdf_blob or job.employer_email_attempted_at %}disabled{% endif %}>Send verified email application</button></form>
+{% if job.employer_email_sent_at %}<p class="green small-desc">Gmail confirmed employer email delivery request.</p>{% elif job.employer_email_attempted_at %}<p class="amber small-desc">Email already attempted. Check Gmail Sent for the actual outcome.</p>{% endif %}
+{% else %}<p class="amber small-desc">No verified invitation to apply by email. Set the address and confirm its use in the vacancy editor first.</p>{% endif %}
+</div>
+<div class="panel side-panel"><h3>Application tracker</h3><p class="small-desc">After you personally submit, mark the job applied here. Status changes never send an employer application.</p>
+<form method="post" action="/jobs/{{job.id}}/status"><input type="hidden" name="csrf" value="{{csrf}}"><label>Current status<select name="status">{% for s in ['discovered','ready','notified','applied','interview','offer','rejected','skipped'] %}<option value="{{s}}" {% if job.status==s %}selected{% endif %}>{{s|replace('_',' ')|title}}</option>{% endfor %}</select></label><button class="btn quiet small">Update tracking status</button></form></div>
+<div class="panel side-panel"><h3>Source record</h3><div class="source-row"><span>Source</span><span class="tag">{{job.source}}</span></div><div class="source-row"><span>Listing</span><span class="{{'green' if job.verified_link else 'amber'}}">{{'Official feed' if job.verified_link else 'Unverified/manual'}}</span></div><div class="source-row"><span>Resume status</span><span class="{{'green' if job.pdf_blob else 'amber'}}">{{'Prepared' if job.pdf_blob else 'Not prepared'}}</span></div></div></div></div>
+{% endblock %}

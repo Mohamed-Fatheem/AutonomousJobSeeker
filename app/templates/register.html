@@ -1,0 +1,7 @@
+{% extends 'base.html' %}{% block title %}Register{% endblock %}
+{% block content %}<div class="auth-wrap"><div class="eyebrow">INVITE-ONLY PILOT</div><h1>Start a focused search.</h1><p class="sub">Create your workspace, then confirm resume facts before preparing any applications.</p>
+<form class="panel auth-form" action="/register" method="post"><input type="hidden" name="csrf" value="{{ csrf }}">
+<label>Email<input type="email" name="email" required placeholder="you@example.com" autocomplete="email"></label>
+<label>Password <span class="hint">Minimum 12 characters</span><input type="password" name="password" required minlength="12" autocomplete="new-password"></label>
+<label>Invite code<input name="invite" type="password" required placeholder="Private deployment invitation"></label>
+<button class="btn primary wide">Create workspace →</button><p class="fine">Already have an account? <a href="/login">Sign in</a>.</p></form></div>{% endblock %}

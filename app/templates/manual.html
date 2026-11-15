@@ -1,0 +1,11 @@
+{% extends 'base.html' %}{% block title %}Add vacancy{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">SAVE A JOB</div><h1>Add a job<span class="period">.</span></h1><p class="sub">Copy the details from a job posting. You can prepare a resume after saving it.</p></div></div>
+<div class="narrow"><form action="/jobs/new" method="post" class="panel form-panel"><input type="hidden" name="csrf" value="{{csrf}}">
+<div class="form-grid"><label>Job title<input name="title" required maxlength="300" placeholder="Backend Engineer"></label><label>Company<input name="company" required maxlength="250" placeholder="Employer name"></label></div>
+<div class="form-grid"><label>Location<input name="location" maxlength="250" placeholder="Remote / Dubai / Bengaluru"></label><label>Source<select name="source">{% for s in ['manual','linkedin','indeed','naukri','naukrigulf','greenhouse','lever','ashby'] %}<option value="{{s}}">{{s|capitalize}}</option>{% endfor %}</select></label></div>
+<label>Job posting link<input type="url" name="listing_url" placeholder="https://..."></label><label>Application link <span class="hint">Check it before sharing personal details</span><input type="url" name="apply_url" placeholder="https://..."></label>
+<label>Full job description<textarea name="description" required rows="16" minlength="180" placeholder="Paste the actual job responsibilities, requirements and qualifications here..."></textarea></label>
+<p class="small-desc">Only factual resume claims already approved in your profile can enter the generated PDF. Source text is treated as untrusted content.</p>
+<button class="btn primary">Save vacancy →</button></form></div>
+{% endblock %}

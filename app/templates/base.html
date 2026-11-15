@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{% block title %}AutonomousJobSeeker{% endblock %} — AJS</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="stylesheet" href="/static/workspace.css">
+  <script src="/static/forms.js" defer></script>
+</head>
+<body data-account="{{user.id if user else ''}}">
+<div class="layout">
+<aside class="sidebar">
+  <a class="brand" href="/"><span class="brand-mark">◈</span><span>Autonomous<span class="brand-highlight">JobSeeker</span></span></a>
+  <div class="micro">YOUR SEARCH, SYSTEMATIZED</div>
+  <nav aria-label="Main navigation">
+    {% if user %}
+    {% for path, icon, label, help in [('/profile','01','Your experience','Contact details and resume'),('/settings','02','Connections','AI service and email'),('/sources','03','Find jobs','Choose sites and companies'),('/','04','Review & apply','Saved jobs and applications'),('/jobs/new','＋','Add a job','Save a job you found')] %}
+    <a href="{{path}}" class="nav-link {{'active' if request.url.path == path else ''}}" {% if request.url.path == path %}aria-current="page"{% endif %}><span class="nav-icon">{{icon}}</span><span>{{label}}<small>{{help}}</small></span></a>
+    {% endfor %}
+    <a href="/export/jobs.csv" class="nav-link">↓ <span>Export tracker</span></a>
+    {% else %}
+    <a href="/login" class="nav-link">↗ <span>Sign in</span></a>
+    <a href="/register" class="nav-link">＋ <span>Register</span></a>
+    {% endif %}
+  </nav>
+  {% if user %}
+  <div class="bottom-user"><div class="avatar">{{ user.email[0]|upper }}</div><div class="identity"><b>{{ user.email.split('@')[0] }}</b><small>Private workspace</small></div></div>
+  <form action="/logout" method="post"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="logout" type="submit">Sign out ↗</button></form>
+  {% endif %}
+  <div class="sidebar-foot">Evidence-first applications<br><span>v1.0 · personal pilot</span></div>
+</aside>
+<main class="main">
+  {% if flash %}<div class="flash {{ 'danger' if flash.kind == 'error' else 'ok' }}" role="status">{{ flash.message }}</div>{% endif %}
+  {% block content %}{% endblock %}
+  <footer>AutonomousJobSeeker <span>·</span> Your experience. Your job search. Your decision to apply.</footer>
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}{% block title %}Job sources{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">FIND JOBS</div><h1>Job sources<span class="period">.</span></h1><p class="sub">Choose where your jobs come from, then find new matches.</p></div>
+<form method="post" action="/pipeline/run"><input type="hidden" name="csrf" value="{{csrf}}"><button class="btn primary">Find new jobs</button></form></div>
+<div class="panel form-panel"><h2>Choose your job sources</h2><p class="small-desc">Select as many as you want. Job alert sites need alerts sent to your connected Gmail. Company career sites need a company added below. These choices control future imports; jobs already saved stay in your list.</p>
+<form method="post" action="/sources/platforms"><input type="hidden" name="csrf" value="{{csrf}}">
+<div class="form-grid">
+{% for name, label, guidance in [('linkedin','LinkedIn','Set up LinkedIn job alerts sent to Gmail'),('indeed','Indeed','Set up Indeed job alerts sent to Gmail'),('naukri','Naukri','Set up Naukri job alerts sent to Gmail'),('naukrigulf','NaukriGulf','Set up NaukriGulf job alerts sent to Gmail'),('greenhouse','Greenhouse','Add companies using Greenhouse below'),('lever','Lever','Add companies using Lever below'),('ashby','Ashby','Add companies using Ashby below')] %}
+<label class="check-line"><input type="checkbox" name="platforms" value="{{name}}" {% if name in selected_platforms %}checked{% endif %}><span><strong>{{label}}</strong><small> — {{guidance}}</small></span></label>
+{% endfor %}
+</div><button class="btn primary">Save job sources</button></form></div>
+<div class="two-column"><div><div class="panel form-panel"><div class="eyebrow">COMPANY CAREER SITES</div><h2>Greenhouse, Lever, Ashby</h2><p class="small-desc">For each company, enter the short name at the end of its career-page address. The app checks only companies you add here and select above. You apply yourself through the job link.</p>
+<form action="/sources" method="post"><input type="hidden" name="csrf" value="{{csrf}}"><div class="form-grid"><label>Career site<select name="kind"><option value="greenhouse">Greenhouse</option><option value="lever">Lever</option><option value="ashby">Ashby</option></select></label><label>Company name from career-page link<input name="slug" required placeholder="e.g. acme" pattern="[a-zA-Z0-9_-]+"></label></div><button class="btn primary">＋ Add company</button></form>
+<div class="divider-line"></div><h3>Companies you follow</h3>
+{% for b in boards %}<div class="source-row"><span><strong>{{b.slug}}</strong><small>{{b.kind|capitalize}}</small></span><form action="/sources/{{b.id}}/delete" method="post"><input type="hidden" name="csrf" value="{{csrf}}"><button class="text-button">Remove</button></form></div>
+{% else %}<p class="muted">No companies added yet.</p>{% endfor %}
+<form class="button-row" method="post" action="/sources/scan"><input type="hidden" name="csrf" value="{{csrf}}"><button class="btn quiet">Check these companies now</button></form></div></div>
+<div><div class="panel form-panel"><div class="eyebrow">JOB ALERTS</div><h2>Alerts from the sites you chose</h2><p class="small-desc">Create job alerts on your selected sites and send them to the Gmail account you connect in Settings. Short alert cards are not saved as jobs: they lack the full description needed to check your skills and 60% threshold. Open a promising alert in Gmail, copy the full posting, then use <a href="/jobs/new">Add a job</a>.</p>
+<div class="source-row"><span><strong>LinkedIn</strong><small>User-configured job alert emails</small></span><span class="tag">Alerts</span></div>
+<div class="source-row"><span><strong>Indeed</strong><small>User-configured job alert emails</small></span><span class="tag">Alerts</span></div>
+<div class="source-row"><span><strong>Naukri</strong><small>User-configured job alert emails</small></span><span class="tag">Alerts</span></div>
+<div class="source-row"><span><strong>NaukriGulf</strong><small>{{ 'Selected above' if 'naukrigulf' in selected_platforms else 'Not selected' }}</small></span><span class="tag">Optional</span></div>
+{% if profile.gmail_credentials %}<form method="post" action="/gmail/import" class="button-row"><input type="hidden" name="csrf" value="{{csrf}}"><button class="btn quiet">Check my job alert emails</button></form>{% else %}<div class="button-row"><a class="btn quiet" href="/settings">Connect Gmail for job alerts →</a></div>{% endif %}
+{% if profile.gmail_credentials %}<form method="post" action="/gmail/refresh-details" class="button-row"><input type="hidden" name="csrf" value="{{csrf}}"><button class="btn quiet">Refresh details on saved alerts</button></form>{% endif %}
+<p class="small-desc amber">Only listings with a named company, complete description, preferred location, matching role and approved skills pass into your saved jobs. Original alert links are never labeled verified.</p></div>
+<div class="panel side-panel"><h3>Need another source?</h3><p class="small-desc">Paste a job description and its application URL as a manual vacancy. This works with any publicly accessible listing without automated account access.</p><a href="/jobs/new" class="btn quiet small">Add a job manually →</a></div></div></div>
+{% endblock %}

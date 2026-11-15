@@ -1,0 +1,22 @@
+name: Daily job discovery & application packages
+on:
+  schedule:
+    - cron: '10 3 * * *' # 08:40 IST, approximate; GitHub cron may run late or skip.
+  workflow_dispatch:
+concurrency:
+  group: autonomous-jobseeker-cron
+  cancel-in-progress: false
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Trigger authenticated daily pipeline
+        env:
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+          CRON_TOKEN: ${{ secrets.CRON_TOKEN }}
+        run: |
+          test -n "$APP_BASE_URL" && test -n "$CRON_TOKEN"
+          curl --fail --show-error --silent --max-time 480 \
+            -X POST -H "X-Cron-Token: ${CRON_TOKEN}" \
+            "${APP_BASE_URL%/}/api/cron/daily"
