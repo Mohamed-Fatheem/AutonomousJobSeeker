@@ -16,7 +16,18 @@ jobs:
           APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
           CRON_TOKEN: ${{ secrets.CRON_TOKEN }}
         run: |
-          test -n "$APP_BASE_URL" && test -n "$CRON_TOKEN"
+          if [ -z "$APP_BASE_URL" ]; then
+            echo "::error::Set the APP_BASE_URL repository secret to the deployed HTTPS origin, such as https://your-app.onrender.com"
+            exit 1
+          fi
+          if [ -z "$CRON_TOKEN" ]; then
+            echo "::error::Set the CRON_TOKEN repository secret to the same value configured on the web service"
+            exit 1
+          fi
+          if ! APP_BASE_URL="$APP_BASE_URL" python -c 'import os, sys; from urllib.parse import urlparse; u = urlparse(os.environ["APP_BASE_URL"]); sys.exit(0 if u.scheme == "https" and u.hostname and not u.username and not u.password and not u.path.rstrip("/") and not u.query and not u.fragment else 1)'; then
+            echo "::error::APP_BASE_URL must be an HTTPS origin with a host and no path, for example https://your-app.onrender.com"
+            exit 1
+          fi
           curl --fail --show-error --silent --max-time 480 \
             -X POST -H "X-Cron-Token: ${CRON_TOKEN}" \
             "${APP_BASE_URL%/}/api/cron/daily"
